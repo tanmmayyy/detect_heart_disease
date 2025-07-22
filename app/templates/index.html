@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Disease Prediction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            animation: fadeInLeft 0.8s ease-out;
+        }
+
+        .results-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            animation: fadeInRight 0.8s ease-out;
+            position: sticky;
+            top: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .form-group .description {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 8px;
+            font-style: italic;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .predict-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .predict-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff40;
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .result-card.low-risk {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .result-card.moderate-risk {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .result-card.high-risk {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+
+        .prediction-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .probability {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin: 15px 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .risk-level {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .disclaimer {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            margin-top: 20px;
+        }
+
+        .disclaimer h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .disclaimer p {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .form-container,
+            .results-container {
+                padding: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .results-container {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>❤️ Heart Disease Prediction</h1>
+            <p>Advanced ML-powered cardiac risk assessment</p>
+        </div>
+
+        <div class="main-content">
+            <div class="form-container">
+                <form id="predictionForm">
+                    <div class="form-grid">
+                        <!-- Form fields will be dynamically generated here -->
+                    </div>
+                    <button type="submit" class="predict-btn" id="predictBtn">
+                        <span class="btn-text">Predict Heart Disease Risk</span>
+                        <div class="loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </button>
+                </form>
+            </div>
+
+            <div class="results-container">
+                <div class="results" id="results">
+                    <div class="result-card" id="resultCard">
+                        <div class="prediction-text" id="predictionText"></div>
+                        <div class="probability" id="probability"></div>
+                        <div class="risk-level" id="riskLevel"></div>
+                        <div class="message" id="message"></div>
+                    </div>
+                </div>
+                
+                <div class="disclaimer">
+                    <h4>⚠️ Medical Disclaimer</h4>
+                    <p>This tool is for educational purposes only and should not replace professional medical advice. Always consult with qualified healthcare professionals for medical decisions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Feature configuration
+        const API_BASE = 'http://localhost:5000/api';
+        
+        let featureInfo = {};
+
+        // Initialize the application
+        async function initApp() {
+            try {
+                // Load feature information from backend
+                const response = await fetch(`${API_BASE}/features`);
+                featureInfo = await response.json();
+                generateForm();
+            } catch (error) {
+                console.error('Error loading features:', error);
+                // Fallback feature info if backend is not available
+                featureInfo = {
+                    age: {name: 'Age', type: 'number', min: 20, max: 100},
+                    sex: {name: 'Sex', type: 'select', options: [{value: 1, label: 'Male'}, {value: 0, label: 'Female'}]},
+                    chest_pain_type: {name: 'Chest Pain Type', type: 'select', options: [
+                        {value: 0, label: 'Typical Angina'},
+                        {value: 1, label: 'Atypical Angina'},
+                        {value: 2, label: 'Non-Anginal Pain'},
+                        {value: 3, label: 'Asymptomatic'}
+                    ]},
+                    resting_bp: {name: 'Resting Blood Pressure', type: 'number', min: 80, max: 200},
+                    cholesterol: {name: 'Cholesterol', type: 'number', min: 100, max: 400},
+                    fasting_blood_sugar: {name: 'Fasting Blood Sugar', type: 'select', options: [
+                        {value: 0, label: '≤ 120 mg/dl'},
+                        {value: 1, label: '> 120 mg/dl'}
+                    ]},
+                    resting_ecg: {name: 'Resting ECG', type: 'select', options: [
+                        {value: 0, label: 'Normal'},
+                        {value: 1, label: 'ST-T Wave Abnormality'},
+                        {value: 2, label: 'Left Ventricular Hypertrophy'}
+                    ]},
+                    max_heart_rate: {name: 'Maximum Heart Rate', type: 'number', min: 60, max: 220},
+                    exercise_angina: {name: 'Exercise Induced Angina', type: 'select', options: [
+                        {value: 0, label: 'No'},
+                        {value: 1, label: 'Yes'}
+                    ]},
+                    oldpeak: {name: 'ST Depression', type: 'number', min: 0, max: 7, step: 0.1},
+                    st_slope: {name: 'ST Slope', type: 'select', options: [
+                        {value: 0, label: 'Upsloping'},
+                        {value: 1, label: 'Flat'},
+                        {value: 2, label: 'Downsloping'}
+                    ]}
+                };
+                generateForm();
+            }
+        }
+
+        function generateForm() {
+            const formGrid = document.querySelector('.form-grid');
+            formGrid.innerHTML = '';
+
+            Object.entries(featureInfo).forEach(([key, info]) => {
+                const formGroup = document.createElement('div');
+                formGroup.className = 'form-group';
+
+                let inputHTML = '';
+                if (info.type === 'number') {
+                    inputHTML = `<input type="number" id="${key}" name="${key}" 
+                                min="${info.min || 0}" 
+                                max="${info.max || 1000}" 
+                                step="${info.step || 1}" 
+                                required>`;
+                } else if (info.type === 'select') {
+                    const options = info.options.map(opt => 
+                        `<option value="${opt.value}">${opt.label}</option>`
+                    ).join('');
+                    inputHTML = `<select id="${key}" name="${key}" required>
+                                    <option value="">Select...</option>
+                                    ${options}
+                                </select>`;
+                }
+
+                formGroup.innerHTML = `
+                    <label for="${key}">${info.name}</label>
+                    ${info.description ? `<div class="description">${info.description}</div>` : ''}
+                    ${inputHTML}
+                `;
+
+                formGrid.appendChild(formGroup);
+            });
+        }
+
+        // Form submission handler
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('predictBtn');
+            const btnText = btn.querySelector('.btn-text');
+            const loading = btn.querySelector('.loading');
+            
+            // Show loading state
+            btn.disabled = true;
+            btnText.style.opacity = '0';
+            loading.style.display = 'block';
+            
+            try {
+                const formData = new FormData(this);
+                const data = {};
+                for (let [key, value] of formData.entries()) {
+                    data[key] = value;
+                }
+                
+                const response = await fetch(`${API_BASE}/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Prediction failed');
+                }
+                
+                const result = await response.json();
+                displayResults(result);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Prediction failed. Please check if the backend server is running.');
+            } finally {
+                // Hide loading state
+                btn.disabled = false;
+                btnText.style.opacity = '1';
+                loading.style.display = 'none';
+            }
+        });
+
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            const resultCard = document.getElementById('resultCard');
+            const predictionText = document.getElementById('predictionText');
+            const probability = document.getElementById('probability');
+            const riskLevel = document.getElementById('riskLevel');
+            const message = document.getElementById('message');
+
+            // Update content
+            predictionText.textContent = result.prediction === 1 ? 'Heart Disease Detected' : 'No Heart Disease Detected';
+            probability.textContent = `${(result.probability * 100).toFixed(1)}%`;
+            riskLevel.textContent = `${result.risk_level} Risk`;
+            message.textContent = result.message;
+
+            // Update styling based on risk level
+            resultCard.className = 'result-card';
+            if (result.risk_level === 'Low') {
+                resultCard.classList.add('low-risk');
+            } else if (result.risk_level === 'Moderate') {
+                resultCard.classList.add('moderate-risk');
+            } else {
+                resultCard.classList.add('high-risk');
+            }
+
+            // Show results with animation
+            resultsDiv.classList.add('show');
+
+            // Scroll to results on mobile
+            if (window.innerWidth <= 768) {
+                resultsDiv.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Initialize the app when page loads
+        initApp();
+    </script>
+</body>
+</html>
