@@ -3,521 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Heart Disease Prediction</title>
+    <title>Cardio-Predict AI | Heart Disease Prediction</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+            font-family: 'Inter', sans-serif;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
-
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-            animation: fadeInDown 0.8s ease-out;
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        .header h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
         }
-
-        .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
         }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 30px;
-            align-items: start;
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
         }
-
-        .form-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            animation: fadeInLeft 0.8s ease-out;
-        }
-
-        .results-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            animation: fadeInRight 0.8s ease-out;
-            position: sticky;
-            top: 20px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-            font-size: 0.9rem;
-        }
-
-        .form-group .description {
-            font-size: 0.8rem;
-            color: #666;
-            margin-bottom: 8px;
-            font-style: italic;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e1e5e9;
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
             border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: white;
         }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            transform: translateY(-2px);
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
-
-        .predict-btn {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 20px;
-            position: relative;
-            overflow: hidden;
+        /* Gauge styles */
+        .gauge-bg {
+            fill: none;
+            stroke: #e5e7eb; /* gray-200 */
+            stroke-width: 12;
         }
-
-        .predict-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .predict-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .loading {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #ffffff40;
-            border-top: 2px solid #ffffff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        .results {
-            display: none;
-        }
-
-        .results.show {
-            display: block;
-            animation: fadeInUp 0.6s ease-out;
-        }
-
-        .result-card {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .result-card.low-risk {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-
-        .result-card.moderate-risk {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        }
-
-        .result-card.high-risk {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-        }
-
-        .prediction-text {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .probability {
-            font-size: 2.5rem;
-            font-weight: 900;
-            margin: 15px 0;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .risk-level {
-            display: inline-block;
-            padding: 8px 16px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 20px;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-
-        .message {
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-
-        .disclaimer {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-            margin-top: 20px;
-        }
-
-        .disclaimer h4 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .disclaimer p {
-            color: #666;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes fadeInRight {
-            from {
-                opacity: 0;
-                transform: translateX(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes spin {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .form-container,
-            .results-container {
-                padding: 20px;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .results-container {
-                position: static;
-            }
+        .gauge-fg {
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+            transform-origin: 50% 50%;
+            transition: stroke-dashoffset 1s ease-in-out, stroke 0.5s;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>❤️ Heart Disease Prediction</h1>
-            <p>Advanced ML-powered cardiac risk assessment</p>
-        </div>
+<body class="bg-slate-50">
 
-        <div class="main-content">
-            <div class="form-container">
-                <form id="predictionForm">
-                    <div class="form-grid">
-                        <!-- Form fields will be dynamically generated here -->
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <main class="w-full max-w-6xl bg-white rounded-3xl shadow-2xl grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
+            
+            <!-- Left Panel: Form -->
+            <div class="p-8 md:p-12 order-2 lg:order-1">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-800">Patient Details</h1>
+                    <p class="text-gray-500 mt-2">Enter the required information to get a prediction.</p>
+                </div>
+
+                <form id="prediction-form" class="space-y-5 h-[60vh] overflow-y-auto custom-scrollbar pr-4">
+                    <div id="form-fields" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+                        <!-- Loading Skeleton -->
+                        <div class="h-16 bg-gray-200 rounded-lg animate-pulse col-span-1"></div>
+                        <div class="h-16 bg-gray-200 rounded-lg animate-pulse col-span-1"></div>
+                        <div class="h-16 bg-gray-200 rounded-lg animate-pulse col-span-2"></div>
+                        <div class="h-16 bg-gray-200 rounded-lg animate-pulse col-span-2"></div>
                     </div>
-                    <button type="submit" class="predict-btn" id="predictBtn">
-                        <span class="btn-text">Predict Heart Disease Risk</span>
-                        <div class="loading">
-                            <div class="spinner"></div>
-                        </div>
-                    </button>
                 </form>
+                <div class="pt-8 text-center border-t border-gray-200 mt-8">
+                    <button type="submit" form="prediction-form" id="predict-button" class="w-full sm:w-auto inline-flex justify-center items-center px-10 py-4 border border-transparent text-base font-bold rounded-full shadow-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-transform transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                        <span id="button-text">Analyze & Predict</span>
+                        <svg id="button-spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
-            <div class="results-container">
-                <div class="results" id="results">
-                    <div class="result-card" id="resultCard">
-                        <div class="prediction-text" id="predictionText"></div>
-                        <div class="probability" id="probability"></div>
-                        <div class="risk-level" id="riskLevel"></div>
-                        <div class="message" id="message"></div>
+            <!-- Right Panel: Results -->
+            <div id="result-panel" class="p-8 md:p-12 bg-gradient-to-br from-gray-800 to-gray-900 text-white flex flex-col justify-center items-center order-1 lg:order-2">
+                <div id="result-container" class="w-full text-center">
+                    <!-- Initial State -->
+                    <div id="initial-state">
+                         <svg class="mx-auto h-24 w-24 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                        </svg>
+                        <h2 class="mt-6 text-2xl font-bold">Cardio-Predict AI</h2>
+                        <p class="mt-2 text-lg text-gray-400">Your AI-powered heart health analysis awaits. Fill out the form to see your results.</p>
                     </div>
                 </div>
-                
-                <div class="disclaimer">
-                    <h4>⚠️ Medical Disclaimer</h4>
-                    <p>This tool is for educational purposes only and should not replace professional medical advice. Always consult with qualified healthcare professionals for medical decisions.</p>
-                </div>
             </div>
-        </div>
+
+        </main>
     </div>
 
     <script>
-        // Feature configuration
-        const API_BASE = 'http://localhost:5000/api';
-        
-        let featureInfo = {};
+        document.addEventListener('DOMContentLoaded', () => {
+            const formFieldsContainer = document.getElementById('form-fields');
+            const predictionForm = document.getElementById('prediction-form');
+            const resultContainer = document.getElementById('result-container');
+            const predictButton = document.getElementById('predict-button');
+            const buttonText = document.getElementById('button-text');
+            const buttonSpinner = document.getElementById('button-spinner');
 
-        // Initialize the application
-        async function initApp() {
-            try {
-                // Load feature information from backend
-                const response = await fetch(`${API_BASE}/features`);
-                featureInfo = await response.json();
-                generateForm();
-            } catch (error) {
-                console.error('Error loading features:', error);
-                // Fallback feature info if backend is not available
-                featureInfo = {
-                    age: {name: 'Age', type: 'number', min: 20, max: 100},
-                    sex: {name: 'Sex', type: 'select', options: [{value: 1, label: 'Male'}, {value: 0, label: 'Female'}]},
-                    chest_pain_type: {name: 'Chest Pain Type', type: 'select', options: [
-                        {value: 0, label: 'Typical Angina'},
-                        {value: 1, label: 'Atypical Angina'},
-                        {value: 2, label: 'Non-Anginal Pain'},
-                        {value: 3, label: 'Asymptomatic'}
-                    ]},
-                    resting_bp: {name: 'Resting Blood Pressure', type: 'number', min: 80, max: 200},
-                    cholesterol: {name: 'Cholesterol', type: 'number', min: 100, max: 400},
-                    fasting_blood_sugar: {name: 'Fasting Blood Sugar', type: 'select', options: [
-                        {value: 0, label: '≤ 120 mg/dl'},
-                        {value: 1, label: '> 120 mg/dl'}
-                    ]},
-                    resting_ecg: {name: 'Resting ECG', type: 'select', options: [
-                        {value: 0, label: 'Normal'},
-                        {value: 1, label: 'ST-T Wave Abnormality'},
-                        {value: 2, label: 'Left Ventricular Hypertrophy'}
-                    ]},
-                    max_heart_rate: {name: 'Maximum Heart Rate', type: 'number', min: 60, max: 220},
-                    exercise_angina: {name: 'Exercise Induced Angina', type: 'select', options: [
-                        {value: 0, label: 'No'},
-                        {value: 1, label: 'Yes'}
-                    ]},
-                    oldpeak: {name: 'ST Depression', type: 'number', min: 0, max: 7, step: 0.1},
-                    st_slope: {name: 'ST Slope', type: 'select', options: [
-                        {value: 0, label: 'Upsloping'},
-                        {value: 1, label: 'Flat'},
-                        {value: 2, label: 'Downsloping'}
-                    ]}
-                };
-                generateForm();
-            }
-        }
+            const API_BASE_URL = 'http://127.0.0.1:5000';
 
-        function generateForm() {
-            const formGrid = document.querySelector('.form-grid');
-            formGrid.innerHTML = '';
-
-            Object.entries(featureInfo).forEach(([key, info]) => {
-                const formGroup = document.createElement('div');
-                formGroup.className = 'form-group';
-
-                let inputHTML = '';
-                if (info.type === 'number') {
-                    inputHTML = `<input type="number" id="${key}" name="${key}" 
-                                min="${info.min || 0}" 
-                                max="${info.max || 1000}" 
-                                step="${info.step || 1}" 
-                                required>`;
-                } else if (info.type === 'select') {
-                    const options = info.options.map(opt => 
-                        `<option value="${opt.value}">${opt.label}</option>`
-                    ).join('');
-                    inputHTML = `<select id="${key}" name="${key}" required>
-                                    <option value="">Select...</option>
-                                    ${options}
-                                </select>`;
+            const buildForm = async () => {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/features`);
+                    if (!response.ok) throw new Error('Failed to load form configuration.');
+                    const features = await response.json();
+                    
+                    formFieldsContainer.innerHTML = '';
+                    
+                    for (const key in features) {
+                        const feature = features[key];
+                        const fieldWrapper = document.createElement('div');
+                        if (['age', 'trestbps', 'chol', 'thalach', 'oldpeak'].includes(key)) {
+                            fieldWrapper.classList.add('sm:col-span-1');
+                        } else {
+                            fieldWrapper.classList.add('sm:col-span-2');
+                        }
+                        
+                        let fieldHTML = `<label for="${key}" class="block text-sm font-medium text-gray-700">${feature.name}</label>`;
+                        
+                        if (feature.type === 'select') {
+                            fieldHTML += `<select name="${key}" id="${key}" required class="form-select mt-1 block w-full px-4 py-3 bg-slate-100 border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">`;
+                            feature.options.forEach(opt => {
+                                fieldHTML += `<option value="${opt.value}">${opt.label}</option>`;
+                            });
+                            fieldHTML += `</select>`;
+                        } else {
+                            fieldHTML += `<input type="number" name="${key}" id="${key}" required 
+                                          min="${feature.min}" max="${feature.max}" step="${feature.step || 1}" 
+                                          placeholder="${feature.placeholder || ''}"
+                                          class="mt-1 block w-full px-4 py-3 bg-slate-100 border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">`;
+                        }
+                        fieldWrapper.innerHTML = fieldHTML;
+                        formFieldsContainer.appendChild(fieldWrapper);
+                    }
+                } catch (error) {
+                    formFieldsContainer.innerHTML = `<div class="sm:col-span-2 text-center text-red-600 bg-red-50 p-4 rounded-lg">Error: ${error.message} Could not connect to the server.</div>`;
+                    console.error('Error fetching features:', error);
                 }
+            };
 
-                formGroup.innerHTML = `
-                    <label for="${key}">${info.name}</label>
-                    ${info.description ? `<div class="description">${info.description}</div>` : ''}
-                    ${inputHTML}
-                `;
+            predictionForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                setLoading(true);
 
-                formGrid.appendChild(formGroup);
+                const formData = new FormData(predictionForm);
+                const data = Object.fromEntries(formData.entries());
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/predict`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.error || 'Prediction failed');
+                    displayResult(result);
+                } catch (error) {
+                    displayError(error.message);
+                } finally {
+                    setLoading(false);
+                }
             });
-        }
 
-        // Form submission handler
-        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+            const displayResult = (result) => {
+                const probabilityPercent = result.probability * 100;
+                const riskColors = {
+                    'Low': { stroke: '#22c55e', text: 'text-green-400' }, // green-500
+                    'Moderate': { stroke: '#f59e0b', text: 'text-amber-400' }, // amber-500
+                    'High': { stroke: '#ef4444', text: 'text-red-500' } // red-500
+                };
+                const color = riskColors[result.risk_level];
+
+                const circumference = 2 * Math.PI * 54; // 2 * pi * radius
+                const offset = circumference - (probabilityPercent / 100) * circumference;
+
+                const resultHTML = `
+                    <div class="fade-in">
+                        <h2 class="text-xl font-semibold text-gray-400">Prediction Result</h2>
+                        <div class="relative my-6">
+                            <svg class="w-48 h-48 mx-auto transform -rotate-90" viewBox="0 0 120 120">
+                                <circle class="gauge-bg" cx="60" cy="60" r="54" />
+                                <circle class="gauge-fg" cx="60" cy="60" r="54" 
+                                    stroke="${color.stroke}"
+                                    stroke-dasharray="${circumference}"
+                                    stroke-dashoffset="${offset}" />
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span class="text-5xl font-extrabold ${color.text}">${probabilityPercent.toFixed(1)}%</span>
+                                <span class="text-lg font-semibold text-gray-300">Probability</span>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold ${color.text}">${result.risk_level} Risk</p>
+                        <p class="text-gray-300 mt-4 max-w-sm mx-auto">${result.message}</p>
+                    </div>
+                `;
+                resultContainer.innerHTML = resultHTML;
+            };
+
+            const displayError = (message) => {
+                resultContainer.innerHTML = `
+                    <div class="fade-in">
+                        <svg class="mx-auto h-20 w-20 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
+                        </svg>
+                        <h2 class="mt-4 text-2xl font-bold text-red-400">An Error Occurred</h2>
+                        <p class="text-gray-400 mt-2">${message}</p>
+                    </div>
+                `;
+            };
             
-            const btn = document.getElementById('predictBtn');
-            const btnText = btn.querySelector('.btn-text');
-            const loading = btn.querySelector('.loading');
-            
-            // Show loading state
-            btn.disabled = true;
-            btnText.style.opacity = '0';
-            loading.style.display = 'block';
-            
-            try {
-                const formData = new FormData(this);
-                const data = {};
-                for (let [key, value] of formData.entries()) {
-                    data[key] = value;
-                }
-                
-                const response = await fetch(`${API_BASE}/predict`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Prediction failed');
-                }
-                
-                const result = await response.json();
-                displayResults(result);
-                
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Prediction failed. Please check if the backend server is running.');
-            } finally {
-                // Hide loading state
-                btn.disabled = false;
-                btnText.style.opacity = '1';
-                loading.style.display = 'none';
-            }
+            const setLoading = (isLoading) => {
+                predictButton.disabled = isLoading;
+                buttonText.style.display = isLoading ? 'none' : 'inline';
+                buttonSpinner.style.display = isLoading ? 'inline' : 'none';
+            };
+
+            buildForm();
         });
-
-        function displayResults(result) {
-            const resultsDiv = document.getElementById('results');
-            const resultCard = document.getElementById('resultCard');
-            const predictionText = document.getElementById('predictionText');
-            const probability = document.getElementById('probability');
-            const riskLevel = document.getElementById('riskLevel');
-            const message = document.getElementById('message');
-
-            // Update content
-            predictionText.textContent = result.prediction === 1 ? 'Heart Disease Detected' : 'No Heart Disease Detected';
-            probability.textContent = `${(result.probability * 100).toFixed(1)}%`;
-            riskLevel.textContent = `${result.risk_level} Risk`;
-            message.textContent = result.message;
-
-            // Update styling based on risk level
-            resultCard.className = 'result-card';
-            if (result.risk_level === 'Low') {
-                resultCard.classList.add('low-risk');
-            } else if (result.risk_level === 'Moderate') {
-                resultCard.classList.add('moderate-risk');
-            } else {
-                resultCard.classList.add('high-risk');
-            }
-
-            // Show results with animation
-            resultsDiv.classList.add('show');
-
-            // Scroll to results on mobile
-            if (window.innerWidth <= 768) {
-                resultsDiv.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-
-        // Initialize the app when page loads
-        initApp();
     </script>
 </body>
 </html>
